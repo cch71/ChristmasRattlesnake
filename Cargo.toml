@@ -1,0 +1,16 @@
+[package]
+name = "blinky"
+version = "0.1.0"
+authors = ["chamilton <cch71a@gmail.com>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+embedded-hal = "0"
+hal = { package = "esp32c3-hal", version = "0" }
+esp-backtrace = { version = "0", features = ["esp32c3", "panic-handler", "print-uart"] }
+esp-println       = { version = "0", features = ["esp32c3"] }
+critical-section  = "1"
+smart-leds = "0"
+esp-hal-smartled = { version = "0", features = ["esp32c3"] }
+heapless = "0"
