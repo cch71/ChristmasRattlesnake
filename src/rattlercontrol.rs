@@ -2,7 +2,6 @@ use embedded_hal::digital::OutputPin;
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-///
 pub(super) struct RattleControl<O>
 where
     O: OutputPin,
@@ -19,7 +18,6 @@ where
     O: OutputPin,
 {
     ///////////////////////////////////////////////////////////////////////////
-    ///
     pub(super) fn new(mut ssr_channel_pin: O) -> Self {
         ssr_channel_pin.set_high().unwrap();
 
@@ -32,7 +30,6 @@ where
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    ///
     pub(super) fn set_distance_as_inches(&mut self, inches_to_target: Option<u8>) {
         // Calculate the frequency we should be oscillating the christmas
         // lights
@@ -47,9 +44,7 @@ where
         // set it every time.
         if current_freq != self.freq {
             self.freq = current_freq;
-            if self.freq == -1 {
-                self.ssr_channel.set_high().unwrap();
-            } else if self.freq == 0 {
+            if self.freq == -1 || self.freq == 0 {
                 self.ssr_channel.set_high().unwrap();
             }
 
@@ -59,7 +54,6 @@ where
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    ///
     pub(super) fn next_maybe_rattle(&mut self) {
         // Based on the count of times being called flip the lights
         // but only of it is not 0 or -1 which are solid vals

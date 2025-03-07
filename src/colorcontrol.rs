@@ -8,7 +8,6 @@ use smart_leds::{
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-///
 pub(super) struct ColorControl<TX, const BUFFER_SIZE: usize>
 where
     TX: TxChannel,
@@ -18,7 +17,7 @@ where
     current_color: Hsv,
 }
 
-impl<'d, TX, const BUFFER_SIZE: usize> ColorControl<TX, BUFFER_SIZE>
+impl<TX, const BUFFER_SIZE: usize> ColorControl<TX, BUFFER_SIZE>
 where
     TX: TxChannel,
 {
@@ -65,4 +64,3 @@ where
         }
     }
 }
-
