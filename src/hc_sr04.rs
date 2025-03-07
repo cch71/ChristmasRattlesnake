@@ -1,42 +1,41 @@
-use hal::{
-    prelude::*,
-    systimer::SystemTimer,
-    Delay,
-    gpio::{InputPin, OutputPin},
+use embedded_hal::{
+    delay::DelayNs,
+    digital::{InputPin, OutputPin},
 };
 
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 /// Get distance to target in inches
-pub(super) fn get_distance_as_inches<O: OutputPin, I: InputPin>(delay: &mut Delay, trigger: &mut O, echo: &I) -> u8 {
-    
-    // Set low to get a clean read
-    trigger.set_output_high(false);
-    delay.delay_us(5u8);
+pub(super) fn get_distance_as_inches<O: OutputPin, I: InputPin, D: DelayNs>(
+    delay: &mut D,
+    trigger: &mut O,
+    echo: &mut I,
+) -> u8 {
+    // Set low vget a clean read
+    trigger.set_low().unwrap();
+    delay.delay_us(5);
 
     // Set trigger high to start measurement.
-    trigger.set_output_high(true);
-    delay.delay_us(10u8);
-    trigger.set_output_high(false);
+    trigger.set_high().unwrap();
+    delay.delay_us(10);
+    trigger.set_low().unwrap();
 
     // TODO: Use pulse reader to measure clocks
     // Wait until pin goes high
-    while !echo.is_input_high() {}
+    while !echo.is_high().unwrap() {}
 
-    // Start time clock count measurement
-    let echo_start = SystemTimer::now();
+    // Start time measurement
+
+    let echo_start = esp_hal::time::Instant::now();
 
     // Wait until pin goes low
-    while echo.is_input_high() {}
+    while echo.is_high().unwrap() {}
 
-    // Collect current timer count
-    let echo_end = SystemTimer::now();
+    use core::ops::Sub;
+    // Collect current timer count and get duration
+    let echo_dur = echo_start.sub(esp_hal::time::Instant::now());
 
-    // Calculate the elapsed timer count
-    let echo_dur = echo_end.wrapping_sub(echo_start);
-
-    // Calculate the distance in cms using formula in datasheet
-    // SystemTimer is in clocks and with a 16MHz clock. 
-    (echo_dur / 16 / 148) as u8
-
+    // Calculate the distance in uS/58=cm using formula in datasheet
+    // echo_dur is in microsecond precision.
+    (echo_dur.as_micros() / 58) as u8
 }

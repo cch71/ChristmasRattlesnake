@@ -1,35 +1,30 @@
-
-use hal::{
-    rmt::{ TxChannel}
-};
+use esp_hal::rmt::TxChannel;
 use esp_hal_smartled::SmartLedsAdapter;
 use smart_leds::{
     brightness, gamma,
-    RGB,
     hsv::{hsv2rgb, Hsv},
-    SmartLedsWrite,
+    SmartLedsWrite, RGB,
 };
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 ///
-pub(super) struct ColorControl<TX, const CHANNEL: u8, const BUFFER_SIZE: usize>
+pub(super) struct ColorControl<TX, const BUFFER_SIZE: usize>
 where
-    TX: TxChannel<CHANNEL>,
+    TX: TxChannel,
 {
-    led_controller: SmartLedsAdapter<TX, CHANNEL, BUFFER_SIZE>,
-    data: [RGB<u8>;1],
+    led_controller: SmartLedsAdapter<TX, BUFFER_SIZE>,
+    data: [RGB<u8>; 1],
     current_color: Hsv,
 }
 
-impl<'d, TX, const CHANNEL: u8, const BUFFER_SIZE: usize> ColorControl<TX, CHANNEL, BUFFER_SIZE>
+impl<'d, TX, const BUFFER_SIZE: usize> ColorControl<TX, BUFFER_SIZE>
 where
-    TX: TxChannel<CHANNEL>,
+    TX: TxChannel,
 {
     ///////////////////////////////////////////////////////////////////////////
     /// Create a new adapter object that drives the pin using the RMT channel.
-    pub(super) fn new(mut led_controller: SmartLedsAdapter<TX, CHANNEL, BUFFER_SIZE>) -> Self
-    {
+    pub(super) fn new(mut led_controller: SmartLedsAdapter<TX, BUFFER_SIZE>) -> Self {
         // Initialize color to green
         let mut color = Hsv {
             hue: 64,
@@ -38,12 +33,14 @@ where
         };
 
         let data = [hsv2rgb(color)];
-        led_controller.write(brightness(gamma(data.iter().cloned()), 10)).unwrap();
+        led_controller
+            .write(brightness(gamma(data.iter().cloned()), 10))
+            .unwrap();
 
         color.hue = 0;
-        Self{
-            led_controller: led_controller,
-            data: data,
+        Self {
+            led_controller,
+            data,
             current_color: color,
         }
     }
@@ -57,12 +54,15 @@ where
         // When sending to the LED, we do a gamma correction first (see smart_leds
         // documentation for details) and then limit the brightness to 10 out of 255 so
         // that the output it's not too bright.
-        self.led_controller.write(brightness(gamma(self.data.iter().cloned()), 10)).unwrap();
+        self.led_controller
+            .write(brightness(gamma(self.data.iter().cloned()), 10))
+            .unwrap();
         // Rotate colors
-        if self.current_color.hue == 255 { 
+        if self.current_color.hue == 255 {
             self.current_color.hue = 0;
         } else {
             self.current_color.hue += 1;
         }
     }
 }
+

@@ -1,16 +1,39 @@
 [package]
-name = "blinky"
+name = "christmas-rattlesnake"
 version = "0.1.0"
-authors = ["chamilton <cch71a@gmail.com>"]
+authors = ["chamilton <chamilton@craigscreations>"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-embedded-hal = "0"
-hal = { package = "esp32c3-hal", version = "0" }
-esp-backtrace = { version = "0", features = ["esp32c3", "panic-handler", "print-uart"] }
-esp-println       = { version = "0", features = ["esp32c3"] }
-critical-section  = "1"
+critical-section = "1.2.0"
+esp-backtrace = { version = "0.15", features = [
+    "esp32c3",
+    "exception-handler",
+    "panic-handler",
+    "println",
+] }
+embedded-hal = "1.0.0"
+# hal = { package = "esp32c3-hal", version = "0" }
+esp-hal = { version = "1.0.0-beta.0", features = ["esp32c3", "unstable"] }
+esp-println = { version = "0", features = ["esp32c3", "log"] }
+esp-hal-smartled = { git = "https://github.com/taorye/esp-hal-community.git", features = [
+    "esp32c3",
+] }
 smart-leds = "0"
-esp-hal-smartled = { version = "0", features = ["esp32c3"] }
 heapless = "0"
+log = { version = "0" }
+
+[profile.dev]
+# Rust debug is too slow.
+# For debug builds always builds with some optimization
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1        # LLVM can perform better optimizations using a single thread
+debug = 2
+debug-assertions = false
+incremental = false
+lto = 'fat'
+opt-level = 's'
+overflow-checks = false

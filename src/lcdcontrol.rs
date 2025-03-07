@@ -1,10 +1,6 @@
-
 use crate::lcd_lm1602_i2c_driver::Lcd;
 
-use embedded_hal::blocking::{
-    delay::DelayMs,
-    i2c::Write,
-};
+use embedded_hal::{delay::DelayNs, i2c::I2c};
 use esp_println::println;
 
 const LCD_ADDRESS: u8 = 0x27;
@@ -12,17 +8,18 @@ const LCD_ADDRESS: u8 = 0x27;
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 ///
-pub(super) struct LcdControl
-{
+pub(super) struct LcdControl {
     lcd: Lcd,
 }
 ////////////////////////////////////////////////////////////////////////////
 ///
-impl LcdControl
-{
+impl LcdControl {
     ////////////////////////////////////////////////////////////////////////////
     ///
-    pub(super) fn new<I: Write, D: DelayMs<u8>>(i2c: &mut I, delay: &mut D) -> Result<Self, <I as Write>::Error> {
+    pub(super) fn new<I2C: I2c, D: DelayNs>(
+        i2c: &mut I2C,
+        delay: &mut D,
+    ) -> Result<Self, I2C::Error> {
         println!("Setting LCD\r");
         let mut lcd = Lcd::new()
             .address(LCD_ADDRESS)
@@ -37,14 +34,17 @@ impl LcdControl
         lcd.write_str(i2c, delay, "Dist:")?;
         println!("Done Setting up LCD\r");
 
-        Ok(Self {
-            lcd,
-        })
+        Ok(Self { lcd })
     }
 
     ////////////////////////////////////////////////////////////////////////////
     ///
-    pub(super) fn update_distance<I: Write, D: DelayMs<u8>>(&mut self, i2c: &mut I, delay: &mut D, inches_to_target: u8) -> Result<(), <I as Write>::Error> {
+    pub(super) fn update_distance<I2C: I2c, D: DelayNs>(
+        &mut self,
+        i2c: &mut I2C,
+        delay: &mut D,
+        inches_to_target: u8,
+    ) -> Result<(), I2C::Error> {
         self.lcd.set_cursor(i2c, delay, 1, 5)?;
 
         use core::fmt::Write;
@@ -58,10 +58,13 @@ impl LcdControl
 
     ////////////////////////////////////////////////////////////////////////////
     ///
-    pub(super) fn clear_distance<I: Write, D: DelayMs<u8>>(&mut self, i2c: &mut I, delay: &mut D) -> Result<(), <I as Write>::Error> {
+    pub(super) fn clear_distance<I2C: I2c, D: DelayNs>(
+        &mut self,
+        i2c: &mut I2C,
+        delay: &mut D,
+    ) -> Result<(), I2C::Error> {
         self.lcd.set_cursor(i2c, delay, 1, 5)?;
         self.lcd.write_str(i2c, delay, "     ")?;
         Ok(())
     }
-
 }
